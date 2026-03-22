@@ -7,6 +7,7 @@ st.set_page_config(page_title="Epidemic Dashboard", layout="wide")
 
 # Title
 st.title("🌍 Epidemic Spread Prediction Dashboard")
+st.markdown("### 🔍 Predicting and Visualizing Global Health Risks")
 
 # Sidebar
 st.sidebar.header("Options")
@@ -35,7 +36,7 @@ df["Date"] = pd.to_datetime(df["Date"])
 # Latest data for map
 latest_df = df[df["Date"] == df["Date"].max()]
 
-# 🌍 MAP (HOTSPOTS)
+# 🌍 MAP
 st.subheader("🌍 Global Hotspots Map")
 
 fig_map = px.scatter_geo(
@@ -45,18 +46,28 @@ fig_map = px.scatter_geo(
     size="Cases",
     color="Cases",
     hover_name="Country/Region",
-    title="COVID-19 Global Spread",
+    title="Global Spread",
 )
 
 st.plotly_chart(fig_map)
 
-# Filter selected country
+# Country filtering
 country_df = df[df["Country/Region"] == country]
 country_df = country_df.groupby("Date")["Cases"].sum().reset_index()
 
-# Daily + rolling
+# Features
 country_df["Daily Cases"] = country_df["Cases"].diff().fillna(0)
 country_df["7-day Avg"] = country_df["Daily Cases"].rolling(window=7).mean()
+
+# 🔴 HOTSPOT DETECTION
+latest_growth = country_df["Daily Cases"].iloc[-1]
+
+if latest_growth > 10000:
+    risk = "🔴 High Risk"
+elif latest_growth > 5000:
+    risk = "🟠 Medium Risk"
+else:
+    risk = "🟢 Low Risk"
 
 # Charts
 col1, col2 = st.columns(2)
@@ -74,10 +85,30 @@ with col2:
 # Metrics
 st.subheader("📌 Key Stats")
 
-col3, col4 = st.columns(2)
+col3, col4, col5 = st.columns(3)
 
 with col3:
     st.metric("Total Cases", int(country_df["Cases"].iloc[-1]))
 
 with col4:
-    st.metric("Latest Daily Cases", int(country_df["Daily Cases"].iloc[-1]))
+    st.metric("Latest Daily Cases", int(latest_growth))
+
+with col5:
+    st.metric("Risk Level", risk)
+
+# 🧠 INSIGHTS SECTION
+st.subheader("🧠 Insights")
+
+if risk == "🔴 High Risk":
+    st.error("Cases are rising rapidly. Immediate action required.")
+elif risk == "🟠 Medium Risk":
+    st.warning("Cases are increasing. Monitor closely.")
+else:
+    st.success("Situation is under control.")
+
+st.markdown("""
+### 📌 What This Means:
+- This dashboard helps identify potential outbreak zones.
+- Authorities can prepare healthcare resources.
+- Citizens can avoid high-risk areas.
+""")
