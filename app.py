@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Page settings
+# Page config
 st.set_page_config(page_title="Epidemic Dashboard", layout="wide")
 
 # Title
@@ -18,38 +18,60 @@ country = st.sidebar.selectbox(
 
 st.write(f"Showing data for: **{country}**")
 
-# Load data from GitHub
+# Load data
 url = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/" \
       "csse_covid_19_data/csse_covid_19_time_series/" \
       "time_series_covid19_confirmed_global.csv"
 
 df = pd.read_csv(url)
 
-# Convert wide → long format
+# Convert format
 df = df.melt(
     id_vars=["Province/State", "Country/Region", "Lat", "Long"],
     var_name="Date",
     value_name="Cases"
 )
 
-# Convert date column
 df["Date"] = pd.to_datetime(df["Date"])
 
-# Filter selected country
+# Filter country
 country_df = df[df["Country/Region"] == country]
-
-# Group by date
 country_df = country_df.groupby("Date")["Cases"].sum().reset_index()
 
-# Plot graph
-st.subheader("📈 Total Cases Over Time")
+# 🔥 NEW: Daily Cases
+country_df["Daily Cases"] = country_df["Cases"].diff().fillna(0)
 
-fig, ax = plt.subplots()
-ax.plot(country_df["Date"], country_df["Cases"])
-ax.set_xlabel("Date")
-ax.set_ylabel("Cases")
+# 🔥 NEW: 7-day rolling average
+country_df["7-day Avg"] = country_df["Daily Cases"].rolling(window=7).mean()
 
-st.pyplot(fig)
+# Layout (columns)
+col1, col2 = st.columns(2)
 
-# Show latest total cases
-st.metric("Total Cases", int(country_df["Cases"].iloc[-1]))
+# Graph 1: Total Cases
+with col1:
+    st.subheader("📈 Total Cases")
+    fig1, ax1 = plt.subplots()
+    ax1.plot(country_df["Date"], country_df["Cases"])
+    ax1.set_xlabel("Date")
+    ax1.set_ylabel("Cases")
+    st.pyplot(fig1)
+
+# Graph 2: Daily Cases + Average
+with col2:
+    st.subheader("📊 Daily Cases & 7-Day Average")
+    fig2, ax2 = plt.subplots()
+    ax2.plot(country_df["Date"], country_df["Daily Cases"], label="Daily Cases")
+    ax2.plot(country_df["Date"], country_df["7-day Avg"], label="7-Day Avg")
+    ax2.legend()
+    st.pyplot(fig2)
+
+# Metrics
+st.subheader("📌 Key Stats")
+
+col3, col4 = st.columns(2)
+
+with col3:
+    st.metric("Total Cases", int(country_df["Cases"].iloc[-1]))
+
+with col4:
+    st.metric("Latest Daily Cases", int(country_df["Daily Cases"].iloc[-1]))
