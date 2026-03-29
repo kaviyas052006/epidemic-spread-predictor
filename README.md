@@ -153,25 +153,6 @@ http://127.0.0.1:8000/docs
 
 ---
 
-## 👥 Team
-
-| Role | Responsibility |
-|------|---------------|
-| Person 1 | Data Preprocessing |
-| Person 2 (Madhu) | ML Model + Backend API |
-| Person 3 | Frontend UI |
-| Person 4 | Git Management |
-
----
-
-## 📝 Honest Notes
-
-- Worst-case errors occur on countries with **irregular reporting patterns** (bulk case dumps after reporting gaps). These are data artifacts, not model failures.
-- **95% of predictions** are within 54% accuracy (P95 error).
-- All metrics are computed with **chronological split** — no future data leaks into training.
-
----
-
 ## 🛠️ Tech Stack
 
 `Python` `FastAPI` `LightGBM` `XGBoost` `Scikit-learn` `SHAP` `Pandas` `NumPy`
