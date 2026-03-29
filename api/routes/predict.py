@@ -1,6 +1,31 @@
 # ─────────────────────────────────────────────
 # predict.py — Cluster-aware prediction
 # ─────────────────────────────────────────────
+from fastapi import APIRouter, HTTPException
+from api.schemas import PredictRequest, PredictResponse
+from src.predict import predict_cases
+from src.anomaly_detection import get_latest_alert
+import logging
+
+logger = logging.getLogger(__name__)
+router = APIRouter()
+
+@router.post("/predict", response_model=PredictResponse)
+def forecast_cases(request: PredictRequest):
+    try:
+        predictions = predict_cases(request.country, request.days)
+        alert_info  = get_latest_alert(request.country)
+        return PredictResponse(
+            country=request.country,
+            days=request.days,
+            predicted_cases=predictions,
+            alert=alert_info["alert_message"]
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Prediction error: {e}")
+        raise HTTPException(status_code=500, detail="Prediction failed")
 import joblib
 import json
 import numpy as np
