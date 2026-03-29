@@ -1,0 +1,11 @@
+{
+  "RMSE": 751968.16,
+  "MAE": 82908.57,
+  "MAPE": 14.04,
+  "Worst_Case": 673.0,
+  "P95_Error": 54.41,
+  "Naive_MAPE": 347.16,
+  "MovAvg_MAPE": 43.25,
+  "WalkFwd_MAPE": 14.55,
+  "Beats_Naive": true
+}
